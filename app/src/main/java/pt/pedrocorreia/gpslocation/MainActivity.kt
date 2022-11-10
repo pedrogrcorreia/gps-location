@@ -3,6 +3,7 @@ package pt.pedrocorreia.gpslocation
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -15,12 +16,25 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.CircleOptions
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import pt.pedrocorreia.gpslocation.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     /*private val locationManager: LocationManager by lazy {
         getSystemService(LOCATION_SERVICE) as LocationManager
     }*/
+
+    companion object {
+        private val ISEC = LatLng(40.1925, -8.4115)
+        private val DEIS = LatLng(40.1925, -8.4128)
+    }
 
     private val locationProvider: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
@@ -41,6 +55,29 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         verifyPermissions()
+
+        (supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment)?.getMapAsync(this)
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onMapReady(map: GoogleMap) {
+        map.isMyLocationEnabled = true
+        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+        map.uiSettings.isCompassEnabled = true
+        map.uiSettings.isZoomControlsEnabled = true
+        map.uiSettings.isZoomGesturesEnabled = true
+        val cp = CameraPosition.Builder().target(ISEC).zoom(17f)
+            .bearing(0f).tilt(0f).build()
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cp))
+        map.addCircle(
+            CircleOptions().center(ISEC).radius(150.0)
+            .fillColor(Color.argb(128, 128, 128, 128))
+            .strokeColor(Color.rgb(128, 0, 0)).strokeWidth(4f))
+        val mo = MarkerOptions().position(ISEC).title("ISEC-IPC")
+            .snippet("Instituto Superior de Engenharia de Coimbra")
+        val isec = map.addMarker(mo)
+        isec?.showInfoWindow()
+        map.addMarker(MarkerOptions().position(DEIS).title("DEIS-ISEC"))
     }
 
     override fun onResume() {
