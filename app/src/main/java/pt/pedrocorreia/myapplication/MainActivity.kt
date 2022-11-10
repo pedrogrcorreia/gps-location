@@ -8,17 +8,24 @@ import android.location.LocationManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationListenerCompat
+import com.google.android.gms.location.*
+import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
 import pt.pedrocorreia.myapplication.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    private val locationManager: LocationManager by lazy {
+    /*private val locationManager: LocationManager by lazy {
         getSystemService(LOCATION_SERVICE) as LocationManager
+    }*/
+
+    private val locationProvider: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
     }
 
     private var coarseLocationPermission = false
@@ -136,7 +143,7 @@ class MainActivity : AppCompatActivity() {
         if (locationEnabled || !(coarseLocationPermission || fineLocationPermission))
             return
 
-        currentLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+        /*currentLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
             ?: Location(nullString).apply {
                 latitude = 40.1925
                 longitude = -8.4128
@@ -147,18 +154,51 @@ class MainActivity : AppCompatActivity() {
             1000,
             100f,
             locationListener
-        )
+        )*/
+
+        currentLocation = Location(nullString).apply{
+            latitude = 40.1925
+            longitude = -8.4128
+        }
+
+        locationProvider.lastLocation
+            .addOnSuccessListener { location ->
+                if (location == null) return@addOnSuccessListener
+                currentLocation = location
+            }
+
+        val locationRequest =
+            LocationRequest.Builder(PRIORITY_HIGH_ACCURACY, 2000)
+                //.setMinUpdateDistanceMeters(100f)
+                //.setMinUpdateIntervalMillis(1000)
+                //.setMaxUpdateDelayMillis(5000)
+                //.setPriority(PRIORITY_HIGH_ACCURACY)
+                //.setIntervalMillis(2000)
+                //.setMaxUpdates(10)
+                .build()
+        locationProvider.requestLocationUpdates(locationRequest,locationCallback, Looper.getMainLooper())
+
         locationEnabled = true
     }
 
-    private val locationListener = LocationListenerCompat {
-            location -> currentLocation = location
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            super.onLocationResult(result)
+            result.locations.forEach { location ->
+                currentLocation = location
+            }
+        }
     }
+
+//    private val locationListener = LocationListenerCompat {
+//            location -> currentLocation = location
+//    }
 
     private fun stopLocationUpdates() {
         if (!locationEnabled)
             return
-        locationManager.removeUpdates(locationListener)
+//        locationManager.removeUpdates(locationListener)
+        locationProvider.removeLocationUpdates(locationCallback)
         locationEnabled = false
     }
 }
