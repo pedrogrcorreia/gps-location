@@ -7,11 +7,17 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "pt.pedrocorreia.myapplication"
+        applicationId "pt.pedrocorreia.gpslocation"
         minSdk 22
         targetSdk 32
         versionCode 1
         versionName "1.0"
+
+        def properties = new Properties()
+        file("../local.properties").withInputStream { properties.load(it) }
+
+        // Share the key with your `AndroidManifest.xml`
+        manifestPlaceholders = [ googleMapsApiKey:"${properties.getProperty('GOOGLE_MAPS_API_KEY')}"]
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

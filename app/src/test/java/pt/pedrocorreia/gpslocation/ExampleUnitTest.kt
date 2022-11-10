@@ -1,4 +1,4 @@
-package pt.pedrocorreia.myapplication
+package pt.pedrocorreia.`gps-location`
 
 import org.junit.Test
 

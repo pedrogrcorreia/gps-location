@@ -1,10 +1,9 @@
-package pt.pedrocorreia.myapplication
+package pt.pedrocorreia.gpslocation
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -14,10 +13,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.location.LocationListenerCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
-import pt.pedrocorreia.myapplication.databinding.ActivityMainBinding
+import pt.pedrocorreia.gpslocation.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     /*private val locationManager: LocationManager by lazy {
