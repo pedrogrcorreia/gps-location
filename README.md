@@ -9,4 +9,4 @@ The focus of this project is to learn about location in Android and Google Servi
 
 - [x] Get current location
 - [x] Show Location on Map
-- [ ] Show Location as device is moved
+- [x] Show Location as device is moved
