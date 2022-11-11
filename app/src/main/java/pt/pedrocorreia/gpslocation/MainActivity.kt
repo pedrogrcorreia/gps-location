@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     companion object {
         private val ISEC = LatLng(40.1925, -8.4115)
         private val DEIS = LatLng(40.1925, -8.4128)
+        private var currentLatLng = DEIS
     }
 
     private val locationProvider: FusedLocationProviderClient by lazy {
@@ -46,6 +47,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var locationEnabled = false
 
     private val nullString : String? = null
+
+    private var currentLocation = Location(nullString)
+        set(value) {
+            field = value
+            binding.tvLat.text = String.format("%10.5f", value.latitude)
+            binding.tvLon.text = String.format("%10.5f", value.longitude)
+            val previousLatLng = currentLatLng
+            currentLatLng = LatLng(value.latitude, value.longitude)
+            if(previousLatLng != currentLatLng)
+                updateMap()
+        }
+
+    private var currentMap : GoogleMap? = null
 
     private lateinit var binding: ActivityMainBinding
 
@@ -78,6 +92,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val isec = map.addMarker(mo)
         isec?.showInfoWindow()
         map.addMarker(MarkerOptions().position(DEIS).title("DEIS-ISEC"))
+        currentMap = map
+    }
+
+    private fun updateMap(){
+        val cp = CameraPosition.Builder().target(currentLatLng).zoom(17f)
+            .bearing(0f).tilt(0f).build()
+        currentMap?.apply {
+            clear()
+            animateCamera(CameraUpdateFactory.newCameraPosition(cp))
+            addCircle(
+                CircleOptions().center(currentLatLng).radius(150.0)
+                    .fillColor(Color.argb(128, 128, 128, 128))
+                    .strokeColor(Color.rgb(128, 0, 0)).strokeWidth(4f))
+        }
+
     }
 
     override fun onResume() {
@@ -166,30 +195,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         Toast.makeText(this,"Background location enabled: $result",Toast.LENGTH_LONG).show()
     }
 
-    private var currentLocation = Location(nullString)
-        set(value) {
-            field = value
-            binding.tvLat.text = String.format("%10.5f", value.latitude)
-            binding.tvLon.text = String.format("%10.5f", value.longitude)
-        }
-
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
         if (locationEnabled || !(coarseLocationPermission || fineLocationPermission))
             return
-
-        /*currentLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
-            ?: Location(nullString).apply {
-                latitude = 40.1925
-                longitude = -8.4128
-            }
-
-        locationManager.requestLocationUpdates(
-            if (fineLocationPermission) LocationManager.GPS_PROVIDER else LocationManager.NETWORK_PROVIDER,
-            1000,
-            100f,
-            locationListener
-        )*/
 
         currentLocation = Location(nullString).apply{
             latitude = 40.1925
@@ -225,14 +234,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-//    private val locationListener = LocationListenerCompat {
-//            location -> currentLocation = location
-//    }
-
     private fun stopLocationUpdates() {
         if (!locationEnabled)
             return
-//        locationManager.removeUpdates(locationListener)
         locationProvider.removeLocationUpdates(locationCallback)
         locationEnabled = false
     }
